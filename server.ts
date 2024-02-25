@@ -4,6 +4,7 @@ import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import bootstrap from './src/main.server';
+import axios from 'axios';
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
@@ -23,6 +24,17 @@ export function app(): express.Express {
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'
   }));
+
+  server.get('/users', async (req, res, next) => {
+    try {
+      const apiResponse = await axios.get('http://jsonplaceholder.typicode.com/users');
+      const users = apiResponse.data;
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).send('Error fetching users');
+    }
+  });
 
   // All regular routes use the Angular engine
   server.get('*', (req, res, next) => {
